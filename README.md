@@ -1,4 +1,4 @@
-# image-classifier
+# Image-Classifier
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/urastogi885/image-classifier/blob/master/LICENSE)
 
 ## Overview
