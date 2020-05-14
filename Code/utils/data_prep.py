@@ -2,6 +2,7 @@ from glob import glob
 import keras.preprocessing
 import matplotlib.pyplot as plt
 from utils import constants
+import os
 
 
 class PreProcessing:
@@ -50,13 +51,17 @@ class PreProcessing:
         return filename_list
 
     def restructure_dataset(self):
-        file_names = self.extract_locations()
-        for file in file_names:
-            file_name = file.split('/')[-1]
-            # Load image using keras, resize it, and convert into numpy array
-            img = keras.preprocessing.image.load_img(file, target_size=(200, 200))
-            img = keras.preprocessing.image.img_to_array(img)
-            if 'dog' in file_name:
-                keras.preprocessing.image.save_img(constants.SAVE_LOCATION + 'dogs/' + file_name, img)
-            elif 'cat' in file_name:
-                keras.preprocessing.image.save_img(constants.SAVE_LOCATION + 'cats/' + file_name, img)
+        if not os.path.exists(constants.SAVE_LOCATION):
+            print('Pre-processing....')
+            file_names = self.extract_locations()
+            for file in file_names:
+                file_name = file.split('/')[-1]
+                # Load image using keras, resize it, and convert into numpy array
+                img = keras.preprocessing.image.load_img(file, target_size=(224, 224))
+                img = keras.preprocessing.image.img_to_array(img)
+                if 'dog' in file_name:
+                    keras.preprocessing.image.save_img(constants.SAVE_LOCATION + 'dogs/' + file_name, img)
+                elif 'cat' in file_name:
+                    keras.preprocessing.image.save_img(constants.SAVE_LOCATION + 'cats/' + file_name, img)
+        else:
+            print('No pre-processing required')
