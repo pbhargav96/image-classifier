@@ -80,14 +80,9 @@ class Classifier:
                                                 target_size=(224, 224))
         test_it = data_gen.flow_from_directory(self.dataset_location[:-6] + 'test/', class_mode='binary', batch_size=64,
                                                target_size=(224, 224))
-        # Define callbacks
-        checkpoint = keras.callbacks.ModelCheckpoint("first_model.h5", monitor='val_acc', verbose=0,
-                                                     save_best_only=True, save_weights_only=False, mode='auto',
-                                                     period=1)
-        early = keras.callbacks.EarlyStopping(monitor='val_acc', min_delta=0, patience=20, verbose=0, mode='auto')
         # fit model
         history = model.fit_generator(train_it, steps_per_epoch=len(train_it), validation_data=test_it, shuffle=True,
-                                      validation_steps=len(test_it), epochs=5, verbose=0, callbacks=[checkpoint, early])
+                                      validation_steps=len(test_it), epochs=5, verbose=0)
         # evaluate model
         _, acc = model.evaluate_generator(test_it, steps=len(test_it), verbose=0)
         print('> %.3f' % (acc * 100.0))
