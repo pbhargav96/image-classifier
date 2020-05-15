@@ -74,11 +74,14 @@ class Classifier:
         # define model
         model = self.define_model()
         # create data generator
-        data_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1.0/255.0)
+        # data_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1.0/255.0)
+        train_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1.0 / 255.0, width_shift_range=0.1,
+                                                                 height_shift_range=0.1, horizontal_flip=True)
+        test_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1.0 / 255.0)
         # prepare iterators
-        train_it = data_gen.flow_from_directory(constants.SAVE_LOCATION, class_mode='binary', batch_size=64,
-                                                target_size=(224, 224))
-        test_it = data_gen.flow_from_directory(self.dataset_location[:-6] + 'test/', class_mode='binary', batch_size=64,
+        train_it = train_gen.flow_from_directory(constants.SAVE_LOCATION, class_mode='binary', batch_size=64,
+                                                 target_size=(224, 224))
+        test_it = test_gen.flow_from_directory(self.dataset_location[:-6] + 'test/', class_mode='binary', batch_size=64,
                                                target_size=(224, 224))
         # fit model
         history = model.fit_generator(train_it, steps_per_epoch=len(train_it), validation_data=test_it, shuffle=True,
