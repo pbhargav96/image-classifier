@@ -54,6 +54,9 @@ class PreProcessing:
         if not os.path.exists(constants.SAVE_LOCATION):
             print('Pre-processing....')
             file_names = self.extract_locations()
+            os.mkdir('../train/')
+            os.mkdir('../train/dogs/')
+            os.mkdir('../train/cats/')
             for file in file_names:
                 file_name = file.split('/')[-1]
                 # Load image using keras, resize it, and convert into numpy array
