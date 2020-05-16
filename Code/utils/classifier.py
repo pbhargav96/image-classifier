@@ -20,34 +20,20 @@ class Classifier:
         Define CNN model of 3 layers
         :return: model
         """
-
-        model = keras.models.Sequential()
-        model.add(keras.layers.Conv2D(input_shape=(224, 224, 3), filters=64, kernel_size=(3, 3), padding="same",
-                                      activation="relu"))
-        model.add(keras.layers.Conv2D(filters=64, kernel_size=(3, 3), padding="same", activation="relu"))
-        model.add(keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
-        model.add(keras.layers.Conv2D(filters=128, kernel_size=(3, 3), padding="same", activation="relu"))
-        model.add(keras.layers.Conv2D(filters=128, kernel_size=(3, 3), padding="same", activation="relu"))
-        model.add(keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
-        model.add(keras.layers.Conv2D(filters=256, kernel_size=(3, 3), padding="same", activation="relu"))
-        model.add(keras.layers.Conv2D(filters=256, kernel_size=(3, 3), padding="same", activation="relu"))
-        model.add(keras.layers.Conv2D(filters=256, kernel_size=(3, 3), padding="same", activation="relu"))
-        model.add(keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
-        model.add(keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu"))
-        model.add(keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu"))
-        model.add(keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu"))
-        model.add(keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
-        model.add(keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu"))
-        model.add(keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu"))
-        model.add(keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu"))
-        model.add(keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
+        model = keras.Sequential()
+        model.add(keras.layers.Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same',
+                                      input_shape=(200, 200, 3)))
+        model.add(keras.layers.MaxPooling2D((2, 2)))
+        model.add(keras.layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'))
+        model.add(keras.layers.MaxPooling2D((2, 2)))
+        model.add(keras.layers.Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'))
+        model.add(keras.layers.MaxPooling2D((2, 2)))
         model.add(keras.layers.Flatten())
-        model.add(keras.layers.Dense(units=4096, activation="relu"))
-        model.add(keras.layers.Dense(units=4096, activation="relu"))
-        model.add(keras.layers.Dense(units=1, activation="softmax"))
-        opt = keras.optimizers.Adam(lr=0.001)
-        model.compile(optimizer=opt, loss=keras.losses.sparse_categorical_crossentropy, metrics=['accuracy'])
-
+        model.add(keras.layers.Dense(128, activation='relu', kernel_initializer='he_uniform'))
+        model.add(keras.layers.Dense(1, activation='sigmoid'))
+        # compile model
+        sgd = keras.optimizers.SGD(learning_rate=0.001, momentum=0.9)
+        model.compile(optimizer=sgd, loss='binary_crossentropy', metrics=['accuracy'])
         return model
 
     @staticmethod
@@ -89,11 +75,14 @@ class Classifier:
         model = self.define_model()
         # create data generator
         # data_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1.0/255.0)
-        train_gen = keras.preprocessing.image.ImageDataGenerator()
-        test_gen = keras.preprocessing.image.ImageDataGenerator()
+        train_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1.0 / 255.0, width_shift_range=0.1,
+                                                                 height_shift_range=0.1, horizontal_flip=True)
+        test_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1.0 / 255.0)
         # prepare iterators
-        train_it = train_gen.flow_from_directory(constants.SAVE_LOCATION, target_size=(224, 224))
-        test_it = test_gen.flow_from_directory(self.dataset_location[:-6] + 'test/', target_size=(224, 224))
+        train_it = train_gen.flow_from_directory(constants.SAVE_LOCATION, class_mode='binary', batch_size=64,
+                                                 target_size=(200, 200))
+        test_it = test_gen.flow_from_directory(self.dataset_location[:-6] + 'test/', class_mode='binary', batch_size=64,
+                                               target_size=(200, 200))
         # fit model
         history = model.fit_generator(train_it, steps_per_epoch=len(train_it), validation_data=test_it, shuffle=True,
                                       validation_steps=len(test_it), epochs=5, verbose=1)
