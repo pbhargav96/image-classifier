@@ -17,20 +17,19 @@ class Classifier:
     @staticmethod
     def define_model():
         """
-        Define CNN model of 3 layers
+        Define a CNN model
         :return: model
         """
-        model = keras.Sequential()
-        model.add(keras.layers.Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same',
-                                      input_shape=(200, 200, 3)))
-        model.add(keras.layers.MaxPooling2D((2, 2)))
-        model.add(keras.layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'))
-        model.add(keras.layers.MaxPooling2D((2, 2)))
-        model.add(keras.layers.Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'))
-        model.add(keras.layers.MaxPooling2D((2, 2)))
-        model.add(keras.layers.Flatten())
-        model.add(keras.layers.Dense(128, activation='relu', kernel_initializer='he_uniform'))
-        model.add(keras.layers.Dense(1, activation='sigmoid'))
+        model = keras.applications.VGG16(include_top=False, input_shape=(224, 224, 3))
+        # mark loaded layers as not trainable
+        for layer in model.layers:
+            layer.trainable = False
+        # add new classifier layers
+        flat1 = keras.layers.Flatten()(model.layers[-1].output)
+        class1 = keras.layers.Dense(128, activation='relu', kernel_initializer='he_uniform')(flat1)
+        output = keras.layers.Dense(1, activation='sigmoid')(class1)
+        # define new model
+        model = keras.models.Model(inputs=model.inputs, outputs=output)
         # compile model
         sgd = keras.optimizers.SGD(learning_rate=0.001, momentum=0.9)
         model.compile(optimizer=sgd, loss='binary_crossentropy', metrics=['accuracy'])
@@ -74,15 +73,17 @@ class Classifier:
         # define model
         model = self.define_model()
         # create data generator
-        # data_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1.0/255.0)
-        train_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1.0 / 255.0, width_shift_range=0.1,
-                                                                 height_shift_range=0.1, horizontal_flip=True)
-        test_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1.0 / 255.0)
+        data_gen = keras.preprocessing.image.ImageDataGenerator(featurewise_center=True)
+        # specify imagenet mean values for centering
+        data_gen.mean = [123.68, 116.779, 103.939]
+        # train_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1.0 / 255.0, width_shift_range=0.1,
+        #                                                          height_shift_range=0.1, horizontal_flip=True)
+        # test_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1.0 / 255.0)
         # prepare iterators
-        train_it = train_gen.flow_from_directory(constants.SAVE_LOCATION, class_mode='binary', batch_size=64,
-                                                 target_size=(200, 200))
-        test_it = test_gen.flow_from_directory(self.dataset_location[:-6] + 'test/', class_mode='binary', batch_size=64,
-                                               target_size=(200, 200))
+        train_it = data_gen.flow_from_directory(constants.SAVE_LOCATION, class_mode='binary', batch_size=64,
+                                                target_size=(224, 224))
+        test_it = data_gen.flow_from_directory(self.dataset_location[:-6] + 'test/', class_mode='binary', batch_size=64,
+                                               target_size=(224, 224))
         # fit model
         history = model.fit_generator(train_it, steps_per_epoch=len(train_it), validation_data=test_it, shuffle=True,
                                       validation_steps=len(test_it), epochs=5, verbose=1)
