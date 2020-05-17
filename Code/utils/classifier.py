@@ -74,17 +74,17 @@ class Classifier:
         # define model
         model = self.define_model()
         # create data generator
-        data_gen = keras.preprocessing.image.ImageDataGenerator(featurewise_center=True)
-        # specify imagenet mean values for centering
-        data_gen.mean = [123.68, 116.779, 103.939]
+        train_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1.0 / 255.0, width_shift_range=0.1,
+                                                                 height_shift_range=0.1, horizontal_flip=True)
+        test_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1.0 / 255.0)
         # prepare iterators
-        train_it = data_gen.flow_from_directory(constants.SAVE_LOCATION, class_mode='binary', batch_size=64,
-                                                target_size=(224, 224))
-        test_it = data_gen.flow_from_directory(self.dataset_location[:-6] + 'test/', class_mode='binary', batch_size=64,
-                                               target_size=(224, 224))
+        train_it = train_gen.flow_from_directory(constants.SAVE_LOCATION, class_mode='binary', batch_size=64,
+                                                 target_size=(200, 200))
+        test_it = test_gen.flow_from_directory(self.dataset_location[:-6] + 'test/', class_mode='binary', batch_size=64,
+                                               target_size=(200, 200))
         # fit model
         history = model.fit_generator(train_it, steps_per_epoch=len(train_it), validation_data=test_it, shuffle=True,
-                                      validation_steps=len(test_it) // 2, epochs=10, verbose=1)
+                                      validation_steps=len(test_it) // 4, epochs=5, verbose=1)
         # evaluate model
         _, acc = model.evaluate_generator(test_it, steps=len(test_it), verbose=0)
         print('> %.3f' % (acc * 100.0))
