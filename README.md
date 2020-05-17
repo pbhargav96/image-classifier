@@ -36,7 +36,7 @@ import matplotlib
 ```
 ## Run
 
-- Download each of the dataset mentioned in the [*Overview Section*](https://github.com/urastogi885/motion-estimator-3d#overview).
+- Download each of the dataset mentioned in the [*Overview Section*](https://github.com/urastogi885/image-classifier#overview).
 - It is recommended that you save the dataset within outer-most directory-level of the project otherwise it will become 
 too cumbersome for you to reference the correct location of the file.
 - Using the terminal, clone this repository and go into the project directory, and run the main program:
