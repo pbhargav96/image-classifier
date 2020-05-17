@@ -85,8 +85,8 @@ class Classifier:
         test_it = data_gen.flow_from_directory(self.dataset_location[:-6] + 'test/', class_mode='binary', batch_size=64,
                                                target_size=(224, 224))
         # fit model
-        history = model.fit_generator(train_it, steps_per_epoch=len(train_it), validation_data=test_it, shuffle=True,
-                                      validation_steps=len(test_it), epochs=5, verbose=1)
+        history = model.fit_generator(train_it, steps_per_epoch=len(train_it) // 2, validation_data=train_it, shuffle=True,
+                                      validation_steps=len(train_it) // 5, epochs=5, verbose=1)
         # evaluate model
         _, acc = model.evaluate_generator(test_it, steps=len(test_it), verbose=0)
         print('> %.3f' % (acc * 100.0))
