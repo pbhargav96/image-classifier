@@ -23,10 +23,13 @@ class Classifier:
         model = keras.Sequential()
         model.add(keras.layers.Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same',
                                       input_shape=(200, 200, 3)))
+        model.add(keras.layers.BatchNormalization())
         model.add(keras.layers.MaxPooling2D((2, 2)))
         model.add(keras.layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'))
+        model.add(keras.layers.BatchNormalization())
         model.add(keras.layers.MaxPooling2D((2, 2)))
         model.add(keras.layers.Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'))
+        model.add(keras.layers.BatchNormalization())
         model.add(keras.layers.MaxPooling2D((2, 2)))
         model.add(keras.layers.Flatten())
         model.add(keras.layers.Dense(128, activation='relu', kernel_initializer='he_uniform'))
@@ -60,10 +63,6 @@ class Classifier:
         # show the plot
         plt.legend()
         plt.show()
-        # save plot to file
-        # filename = sys.argv[0].split('/')[-1]
-        # plt.savefig(filename + '_plot.png')
-        # plt.close()
 
     def run_test_harness(self):
         """
@@ -85,7 +84,7 @@ class Classifier:
                                                target_size=(200, 200))
         # fit model
         history = model.fit_generator(train_it, steps_per_epoch=len(train_it), validation_data=test_it, shuffle=True,
-                                      validation_steps=len(test_it), epochs=5, verbose=1)
+                                      validation_steps=len(test_it) // 4, epochs=10, verbose=1)
         # evaluate model
         _, acc = model.evaluate_generator(test_it, steps=len(test_it), verbose=0)
         print('> %.3f' % (acc * 100.0))
